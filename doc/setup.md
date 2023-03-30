@@ -2,9 +2,9 @@
 Этот документ объясняет создание облачных ресурсов, автоматизируемых с применением terraform.
 
 ## Предварительные требования
-* Яндекс CLI yc
-* Kubernetes CLI kubectl
-* terraform CLI
+* Яндекс CLI `yc`
+* Kubernetes CLI `kubectl`
+* `terraform` CLI
 * Доступ к Yandex Cloud
 
 Создаваемые ресурсы:
@@ -12,18 +12,19 @@
 * виртуальная сеть
 * подсети в зонах доступности
 * сервисные эккаунты
-* kubernetes managed service
+* kubernetes managed service + workers node group
 
 ## Инструменты
 ### Yandex CLI
 [Документация](https://cloud.yandex.ru/docs/cli/operations/install-cli)
+
 Linux, Mac:
 ```
 curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
 ```
 Следуя инструкции получить OAuth token. Инициализировать yc cli: `yc init`. Ввести OAuth token. Выбрать существующий или создать новый каталог (devel id=b1grhaf66v577lrr6fes). Выбрать зону по умолчанию (ru-central1-a).
 
- Проверить созданную конфигурацию: `yc config list`
+Проверить созданную конфигурацию: `yc config list`
 
 ### Kubernetes CLI
 [Документация](https://kubernetes.io/docs/tasks/tools/#kubectl)
@@ -33,7 +34,7 @@ curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
 
 [Работа с terraform в Yandex Cloud](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart)
 
-Документация рекомендует работать с сервисным эккаутом. Создать СЭ:
+Документация рекомендует работать с сервисным эккаутом. Создать сервисный эккаут:
 ```
 yc iam service-account create --name sa-terraform --description 'Terrafrom IaC service account'
 ```
@@ -72,7 +73,7 @@ export YC_FOLDER_ID=$(yc config get folder-id)
 ```
 Сконфигурировать TF провайдер yandex в `terraform/config.tf`. Выполнить `terraform init`.
 
-[Документация TF провайдера Yandex](https://registry.tfpla.net/providers/yandex-cloud/yandex/latest/docs).
+[Документация по TF провайдеру Yandex](https://registry.tfpla.net/providers/yandex-cloud/yandex/latest/docs).
 
 ## Облачные Ресурсы
 ### Сети
@@ -138,18 +139,23 @@ yc iam key create \
   --service-account-id $IC_SA_ID \
   --output sa-key.json
 ```
+
 ### Container Registry
+Каталог образов контейнеров служит для хранения создаваемых образов контейнеров и других артефактов, из которого они разворачиваются на такие платформы как Кубернетес.
+
 Создать каталог образов контейнеров:
 ```
 yc container registry create --name cr
 yc container registry configure-docker
 ```
+
 Опубликовать локальный образ:
 ```
 REGISTRY_ID=$(yc container registry get --name yc-auto-cr --format json | jq .id -r)
 docker build . -t cr.yandex/$REGISTRY_ID/image_name:latest
 docker push cr.yandex/$REGISTRY_ID/image_name:latest
 ```
+
 Проверить: `yc container image list`
 
 ### Jumphost
@@ -168,7 +174,7 @@ yc compute instance create \
   --create-boot-disk image-folder-id=standard-images,image-family=ubuntu-22-04-lts \
   --ssh-key ~/.ssh/yctf_id_ed25519.pub
 ```
-Админ пользователь, в который будет установлен SSH ключ, - `ubuntu`.
+Админ пользователь, в который будет установлен SSH ключ: `ubuntu`.
 
 Вывести публичный IP хоста: 
 ```
@@ -187,6 +193,7 @@ yc managed-kubernetes cluster create \
   --service-account-name sa-k8s-res-edit \
   --node-service-account-name sa-k8s-img-pull
 ```
+
 после завершения создания кластера создать рабочие узлы:
 ```
 yc managed-kubernetes node-group create \
@@ -203,16 +210,16 @@ yc managed-kubernetes node-group create \
   --node-labels role=user \
   --async
 ```
-Сконфигурировать kubectl: `yc managed-kubernetes cluster get-credentials --name k8s --external`
+Сконфигурировать `kubectl`: `yc managed-kubernetes cluster get-credentials --name k8s --external`
 
-Проверить работу kubectl: `kubectl get nodes`. Ожидаемый результат: список рабочих узлов кластера.
+Проверить работу `kubectl`: `kubectl get nodes`. Ожидаемый результат: список рабочих узлов кластера.
 
 ### Ingress: Yandex ALB
 [Документация](https://cloud.yandex.ru/docs/managed-kubernetes/operations/applications/alb-ingress-controller)
 
 ## Terraform
 Terraform описывает конфигурацию облачных ресурсов используя YAML файлы с [HCL синтаксисом](https://developer.hashicorp.com/terraform/language/syntax/configuration).
-Конфигурации ресурсов находятся в директории terraform/. Параметры сред (таких как DEV или PRD например) находятся в директории env/. Параметры выбранной среды передаются с опцией -var-file.
+Конфигурации ресурсов находятся в директории `terraform/`. Параметры сред (таких как DEV или PRD например) находятся в директории `env/`. Параметры выбранной среды передаются с опцией `-var-file`.
 
 Инициализация:
 ```
