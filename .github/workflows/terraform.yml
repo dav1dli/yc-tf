@@ -38,4 +38,4 @@ jobs:
 
           terraform apply -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
             -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
-            -auto-approve
+            -var-file="../env/dev/env.tfvars" -auto-approve
