@@ -24,12 +24,16 @@ jobs:
 
       - name: 'Terraform Init'
         working-directory: terraform
+        env:
+          YC_TOKEN: ${{ secrets.YC_OAUTH_TOKEN }}
+          CLOUD_ID: ${{ secrets.CLOUD_ID }}
+          FOLDER_ID: ${{ secrets.FOLDER_ID }}
         run: terraform init -var-file="../env/dev/env.tfvars"
 
       - name: 'Terraform Apply'
         working-directory: terraform
         env:
-          YC_OAUTH_TOKEN: ${{ secrets.YC_OAUTH_TOKEN }}
+          YC_TOKEN: ${{ secrets.YC_OAUTH_TOKEN }}
           CLOUD_ID: ${{ secrets.CLOUD_ID }}
           FOLDER_ID: ${{ secrets.FOLDER_ID }}
         run: |
