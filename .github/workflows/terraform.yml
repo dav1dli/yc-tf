@@ -23,7 +23,7 @@ jobs:
           terraform_version: 1.8.4
       - name: 'Set Environment Variables'
         run: |
-          echo "YC_TOKEN=${{ secrets.YC_OAUTH_TOKEN }}" >> $GITHUB_ENV
+          echo "YC_TOKEN=${{ secrets.YC_TOKEN }}" >> $GITHUB_ENV
           echo "CLOUD_ID=${{ secrets.CLOUD_ID }}" >> $GITHUB_ENV
           echo "FOLDER_ID=${{ secrets.FOLDER_ID }}" >> $GITHUB_ENV
 
