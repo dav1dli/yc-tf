@@ -21,21 +21,19 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.8.4
+      - name: 'Set Environment Variables'
+        run: |
+          echo "YC_TOKEN=${{ secrets.YC_OAUTH_TOKEN }}" >> $GITHUB_ENV
+          echo "CLOUD_ID=${{ secrets.CLOUD_ID }}" >> $GITHUB_ENV
+          echo "FOLDER_ID=${{ secrets.FOLDER_ID }}" >> $GITHUB_ENV
 
       - name: 'Terraform Init'
         working-directory: terraform
-        env:
-          YC_TOKEN: ${{ secrets.YC_OAUTH_TOKEN }}
-          CLOUD_ID: ${{ secrets.CLOUD_ID }}
-          FOLDER_ID: ${{ secrets.FOLDER_ID }}
         run: terraform init -var-file="../env/dev/env.tfvars"
 
       - name: 'Terraform Apply'
         working-directory: terraform
-        env:
-          YC_TOKEN: ${{ secrets.YC_OAUTH_TOKEN }}
-          CLOUD_ID: ${{ secrets.CLOUD_ID }}
-          FOLDER_ID: ${{ secrets.FOLDER_ID }}
         run: |
+          env | sort
           terraform apply -var "yc_oauth_token=${{ secrets.YC_OAUTH_TOKEN }}" \
             -var-file="../env/dev/env.tfvars" -auto-approve
