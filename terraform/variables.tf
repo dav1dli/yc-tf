@@ -29,3 +29,9 @@ variable "registry_name" {
   description = "Container registry name"  
   default = ""
 }
+variable "yc_oauth_token" {
+  type = string  
+  description = "Yaandex Cloud OAuth token"  
+  default = ""
+  sensitive   = true
+}

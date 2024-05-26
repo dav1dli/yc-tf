@@ -1,0 +1,37 @@
+name: 'Terraform'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v2
+
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.1.9
+
+      - name: 'Terraform Init'
+        working-directory: terraform
+        run: terraform init -var-file="../env/dev/env.tfvars"
+
+      - name: 'Terraform Apply'
+        working-directory: terraform
+        env:
+          YC_OAUTH_TOKEN: ${{ secrets.YC_OAUTH_TOKEN }}
+          CLOUD_ID: ${{ secrets.CLOUD_ID }}
+          FOLDER_ID: ${{ secrets.FOLDER_ID }}
+        run: |
+          terraform apply -var "yc_oauth_token=${{ secrets.YC_OAUTH_TOKEN }}" \
+            -var-file="../env/dev/env.tfvars" -auto-approve

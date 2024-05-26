@@ -28,3 +28,24 @@ resource "yandex_vpc_subnet" "subnet-mngmt" {
 #  network_id     = yandex_vpc_network.network.id
 #  v4_cidr_blocks = [local.az_dflt_svc_cidr]
 #}
+# resource "yandex_vpc_route_table" "main" {
+#   network_id = yandex_vpc_network.network.id
+
+#   static_route {
+#     destination_prefix = "0.0.0.0/0"
+#     next_hop_address   = "your-internet-gateway-address"
+#   }
+# }
+
+# resource "yandex_vpc_security_group" "k8s_sg" {
+#   name        = "k8s-security-group"
+#   network_id  = yandex_vpc_network.network.id
+#   description = "Security group for Kubernetes cluster"
+
+#   egress {
+#     protocol       = "ALL"
+#     ports          = []
+#     cidr_blocks    = ["0.0.0.0/0"]
+#     description    = "Allow all outbound traffic"
+#   }
+# }

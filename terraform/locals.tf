@@ -9,6 +9,8 @@ locals {
   sa_imgpull_name    = "sa-k8s-img-pull"
   sa_ic_name         = "sa-k8s-ic"
   k8s_name           = "kube"
-  k8s_version        = "1.23"
+  k8s_version        = "1.29"
   jumphost_name      = "jumphost"
+  logs_name          = "logs-${var.project}-${var.environment}"
+  k8s_enc_key_name   = "k8s_enc_key"
 }

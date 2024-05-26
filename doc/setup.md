@@ -34,6 +34,16 @@ curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash
 
 [Работа с terraform в Yandex Cloud](https://cloud.yandex.ru/docs/tutorials/infrastructure-management/terraform-quickstart)
 
+Создать ключ шифрования: 
+```
+yc kms symmetric-key create --name k8s_enc_key \
+  --default-algorithm aes-256 --rotation-period 8760h
+``` 
+Зашифровать YC OAuth token: 
+```
+yc kms symmetric-crypto encrypt --name k8s_enc_key \
+  --plaintext-file plaintext-file --ciphertext-file ciphertext-file
+```
 Документация рекомендует работать с сервисным эккаутом. Создать сервисный эккаут:
 ```
 yc iam service-account create --name sa-terraform --description 'Terrafrom IaC service account'
@@ -210,7 +220,9 @@ yc managed-kubernetes node-group create \
   --node-labels role=user \
   --async
 ```
-Сконфигурировать `kubectl`: `yc managed-kubernetes cluster get-credentials --name k8s --external`
+[Сконфигурировать](https://yandex.cloud/ru/docs/managed-kubernetes/operations/connect/#kubectl-connect) `kubectl`: `yc managed-kubernetes cluster get-credentials --name k8s --external`
+
+В случае, когда кластер приватный: `yc managed-kubernetes cluster get-credentials k8s --internal`. В этом случае доступ к менеджменту кластера возможен только изнутри приватной виртуалъной сети, в которой сконфигурирован кластер.
 
 Проверить работу `kubectl`: `kubectl get nodes`. Ожидаемый результат: список рабочих узлов кластера.
 
