@@ -1,7 +1,6 @@
 # resource "yandex_kubernetes_cluster" "k8s-cluster" {
 #   description = "Managed Service for Kubernetes cluster"
 #   name        = local.k8s_name
-#   folder_id   = var.folder_id
 #   network_id  = yandex_vpc_network.network.id
 
 #   master {

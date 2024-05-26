@@ -1,6 +1,5 @@
 # resource "yandex_compute_instance" "jumphost" {
 #   name        = local.jumphost_name
-#   folder_id   = var.folder_id
 #   platform_id = "standard-v3"
 #   zone        = var.az_deflt
 

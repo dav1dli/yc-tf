@@ -11,6 +11,6 @@ locals {
   k8s_name           = "kube"
   k8s_version        = "1.29"
   jumphost_name      = "jumphost"
-  logs_name          = "logs-${var.project}-${var.environment}"
+  logs_name          = "logs"
   k8s_enc_key_name   = "k8s_enc_key"
 }
