@@ -35,5 +35,6 @@ jobs:
         working-directory: terraform
         run: |
           env | sort
-          terraform apply -var "yc_oauth_token=${{ secrets.YC_OAUTH_TOKEN }}" \
-            -var-file="../env/dev/env.tfvars" -auto-approve
+          terraform apply -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
+            -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
+            -auto-approve
