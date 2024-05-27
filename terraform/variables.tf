@@ -58,15 +58,3 @@ variable "region" {
   type        = string
   default     = "ru-central1"
 }
-
-variable "access_key" {
-  description = "Access key for the S3 backend"
-  type        = string
-  sensitive   = true
-}
-
-variable "secret_key" {
-  description = "Secret key for the S3 backend"
-  type        = string
-  sensitive   = true
-}
