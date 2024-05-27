@@ -54,11 +54,9 @@ jobs:
       - name: 'Terraform Plan'
         working-directory: terraform
         run: |
-          env | sort
-          # terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
-          #   -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
-          #   -var-file="../env/dev/env.tfvars" -out=infra.tfplan
-
+          terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
+            -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
+            -var-file="../env/dev/env.tfvars" -out=infra.tfplan
       - name: 'Dry Run Check'
         if: env.DRY_RUN == 'true'
         run: |
