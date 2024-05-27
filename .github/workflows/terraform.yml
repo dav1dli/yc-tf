@@ -26,10 +26,22 @@ jobs:
           terraform_version: 1.8.4
       - name: 'Set Environment Variables'
         run: |
+          which subst
           echo "YC_TOKEN=${{ secrets.YC_TOKEN }}" >> $GITHUB_ENV
           echo "CLOUD_ID=${{ secrets.CLOUD_ID }}" >> $GITHUB_ENV
           echo "FOLDER_ID=${{ secrets.FOLDER_ID }}" >> $GITHUB_ENV
+          echo "S3TF_ACCESS_KEY=${{ secrets.S3TF_ACCESS_KEY }}" >> $GITHUB_ENV
+          echo "S3TF_SECRET_KEY=${{ secrets.S3TF_SECRET_KEY }}" >> $GITHUB_ENV
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
+      - name: Install s3cmd
+        run: |
+          python -m pip install --upgrade pip
+          pip install s3cmd
+          cat env/dev/s3cfg/tmpl
       - name: 'Terraform Init'
         working-directory: terraform
         run: terraform init -var-file="../env/dev/env.tfvars"
@@ -37,19 +49,21 @@ jobs:
       - name: 'Terraform Plan'
         working-directory: terraform
         run: |
+          set -xe
           env | sort
           terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
             -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
             -var-file="../env/dev/env.tfvars" -out=infra.tfplan
-      - name: 'Dry Run Check'
-        if: env.DRY_RUN == 'true'
-        run: |
-          echo "Dry Run: Skipping deployment steps."
+      # - name: 'Dry Run Check'
+      #   if: env.DRY_RUN == 'true'
+      #   run: |
+      #     echo "Dry Run: Skipping deployment steps."
 
-      - name: 'Terraform Apply'
-        working-directory: terraform
-        if: env.DRY_RUN != 'true'
-        run: |
-          terraform apply -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
-            -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
-            -var-file="../env/dev/env.tfvars" -auto-approve
+      # - name: 'Terraform Apply'
+      #   working-directory: terraform
+      #   if: env.DRY_RUN != 'true'
+      #   run: |
+      #     set -xe
+      #     terraform apply -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
+      #       -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
+      #       -var-file="../env/dev/env.tfvars" -auto-approve
