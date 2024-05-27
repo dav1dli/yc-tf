@@ -10,7 +10,7 @@ on:
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: 'Deploy'
     runs-on: ubuntu-latest
 
     env:
@@ -24,27 +24,30 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.8.4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
       - name: 'Set Environment Variables'
         run: |
-          which subst
           echo "YC_TOKEN=${{ secrets.YC_TOKEN }}" >> $GITHUB_ENV
           echo "CLOUD_ID=${{ secrets.CLOUD_ID }}" >> $GITHUB_ENV
           echo "FOLDER_ID=${{ secrets.FOLDER_ID }}" >> $GITHUB_ENV
           echo "S3TF_ACCESS_KEY=${{ secrets.S3TF_ACCESS_KEY }}" >> $GITHUB_ENV
           echo "S3TF_SECRET_KEY=${{ secrets.S3TF_SECRET_KEY }}" >> $GITHUB_ENV
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
 
       - name: Install s3cmd
         run: |
           python -m pip install --upgrade pip
           pip install s3cmd
           cat env/dev/s3cfg/tmpl
+
       - name: 'Terraform Init'
         working-directory: terraform
-        run: terraform init -var-file="../env/dev/env.tfvars"
+        run: |
+          terraform init -var-file="../env/dev/env.tfvars"
+          terraform validate
 
       - name: 'Terraform Plan'
         working-directory: terraform
