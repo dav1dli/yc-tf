@@ -51,6 +51,33 @@ jobs:
         run: |
           s3cmd ls s3://s3tfstate/infra.tfstate || { echo "File does not exist."; exit 0; }
           s3cmd get s3://s3tfstate/infra.tfstate terraform.tfstate
+      # - name: 'Terraform Plan'
+      #   working-directory: terraform
+      #   id: plan
+      #   run: |
+      #     terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
+      #       -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
+      #       -var-file="../env/dev/env.tfvars" -out=infra.tfplan -input=false -detailed-exitcode
+      #   continue-on-error: true
+      # - name: 'Check Plan Exit Code'
+      #   id: check_plan
+      #   run: |
+      #     if [[ ${{ steps.plan.outcome }} == 'success' ]]; then
+      #       echo "apply_required=false" >> $GITHUB_ENV
+      #     elif [[ ${{ steps.plan.outcome }} == 'failure' ]]; then
+      #       exit 1
+      #     else
+      #       echo "apply_required=true" >> $GITHUB_ENV
+      #     fi
+
+      # - name: Terraform Apply
+      #   working-directory: terraform
+      #   if: env.apply_required == 'true' && env.DRY_RUN == 'false'
+      #   run: |
+      #     set -xe
+      #     terraform apply -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
+      #       -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
+      #       -var-file="../env/dev/env.tfvars" -auto-approve
       - name: 'Terraform Plan'
         working-directory: terraform
         id: plan
@@ -58,21 +85,8 @@ jobs:
           terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
             -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
             -var-file="../env/dev/env.tfvars" -out=infra.tfplan -input=false -detailed-exitcode
-        continue-on-error: true
-      - name: 'Check Plan Exit Code'
-        id: check_plan
-        run: |
-          if [[ ${{ steps.plan.outcome }} == 'success' ]]; then
-            echo "apply_required=false" >> $GITHUB_ENV
-          elif [[ ${{ steps.plan.outcome }} == 'failure' ]]; then
-            exit 1
-          else
-            echo "apply_required=true" >> $GITHUB_ENV
-          fi
-
       - name: Terraform Apply
         working-directory: terraform
-        if: env.apply_required == 'true' && env.DRY_RUN == 'false'
         run: |
           set -xe
           terraform apply -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
