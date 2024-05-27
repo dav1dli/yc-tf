@@ -15,6 +15,11 @@ jobs:
 
     env:
       DRY_RUN: true
+      YC_TOKEN: ${{ secrets.YC_TOKEN }}
+      CLOUD_ID: ${{ secrets.CLOUD_ID }}
+      FOLDER_ID: ${{ secrets.FOLDER_ID }}
+      S3TF_ACCESS_KEY: ${{ secrets.S3TF_ACCESS_KEY }}
+      S3TF_SECRET_KEY: ${{ secrets.S3TF_SECRET_KEY }}
 
     steps:
       - name: 'Checkout GitHub Action'
@@ -28,21 +33,14 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-
-      - name: 'Set Environment Variables'
-        run: |
-          echo "YC_TOKEN=${{ secrets.YC_TOKEN }}" >> $GITHUB_ENV
-          echo "CLOUD_ID=${{ secrets.CLOUD_ID }}" >> $GITHUB_ENV
-          echo "FOLDER_ID=${{ secrets.FOLDER_ID }}" >> $GITHUB_ENV
-          echo "S3TF_ACCESS_KEY=${{ secrets.S3TF_ACCESS_KEY }}" >> $GITHUB_ENV
-          echo "S3TF_SECRET_KEY=${{ secrets.S3TF_SECRET_KEY }}" >> $GITHUB_ENV
-
       - name: Install s3cmd
         run: |
           python -m pip install --upgrade pip
           pip install s3cmd
-          cat env/dev/s3cfg.tmpl
-
+          cat env/dev/s3cfg.tmpl > $HOME/.s3cfg
+          echo "access_key=$S3TF_ACCESS_KEY" >> $HOME/.s3cfg
+          echo "secret_key=$S3TF_SECRET_KEY" >> $HOME/.s3cfg
+          s3cmd ls
       - name: 'Terraform Init'
         working-directory: terraform
         run: |
@@ -54,9 +52,9 @@ jobs:
         run: |
           set -xe
           env | sort
-          terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
-            -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
-            -var-file="../env/dev/env.tfvars" -out=infra.tfplan
+          # terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
+          #   -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
+          #   -var-file="../env/dev/env.tfvars" -out=infra.tfplan
       # - name: 'Dry Run Check'
       #   if: env.DRY_RUN == 'true'
       #   run: |
