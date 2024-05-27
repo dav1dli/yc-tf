@@ -245,3 +245,42 @@ terraform -chdir=terraform plan -var-file=../env/dev/env.tfvars -out=yc.tfplan
 ```
 terraform -chdir=terraform apply -input=false -auto-approve yc.tfplan
 ```
+### Persistent state
+
+Terraform упдавляет файлом текущего состояния. По умолчанию, файл находится локально в рабочей директории. При потере файла его требуется пересоздавать, импортируя существующие ресурсы. Файл состояния может [храниться удаленно](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-state-storage). 
+
+Параметры соединения:
+* Access key: `$(yc iam access-key list --service-account-name sa-s3-tfstate --format json | jq -r ".[0].key_id")`
+* Secret key: значение доступно только в момент создания access key
+* Server endpoint: `https://storage.yandexcloud.net`
+* bucket: `s3tfstate`
+
+Создать объектное хранилище:
+```
+yc storage bucket create \
+  --name s3tfstate \
+  --default-storage-class standard \
+  --max-size 5368709120 \
+  --public-read=false
+```
+
+Сервисный эккаунт для доступа к хранилищу данных:
+```
+yc iam service-account create --name sa-s3-tfstate
+S3_SA_ID=$(yc iam service-account get --name sa-s3-tfstate --format json | jq .id -r)
+yc resource-manager folder add-access-binding --id $FOLDER_ID \
+  --role storage.editor --subject serviceAccount:$S3_SA_ID
+yc iam access-key create --service-account-name sa-s3-tfstate --format json > access_key.json
+ID=$(yc iam access-key list --service-account-name sa-s3-tfstate --format json | jq -r ".[0].key_id")
+export TF_VAR_access_key=$(cat access_key.json | jq -r .access_key.key_id)
+export TF_VAR_secret_key=$(cat access_key.json | jq -r .secret)
+export ACCESS_KEY=$(cat access_key.json | jq -r .access_key.key_id)
+export SECRET_KEY=$(cat access_key.json | jq -r .secret)
+```
+
+Configure backend in `config.tf`. Configure environment specific backend in `env/dev/backend.tfvars`.
+
+Init terraform with the backend:
+```
+terraform -chdir=terraform init -var-file=../env/dev/env.tfvars -backend-config=../env/dev/backend.tfvars 
+```

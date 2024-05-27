@@ -35,3 +35,38 @@ variable "yc_oauth_token" {
   default = ""
   sensitive   = true
 }
+variable "endpoint" {
+  description = "S3 endpoint"
+  type        = string
+  default     = "https://storage.yandexcloud.net"
+}
+
+variable "bucket" {
+  description = "The name of the bucket"
+  type        = string
+  default     = "s3tfstate"
+}
+
+variable "key" {
+  description = "The path to the state file inside the bucket"
+  type        = string
+  default     = "infra.tfstate"
+}
+
+variable "region" {
+  description = "The region of the bucket"
+  type        = string
+  default     = "ru-central1"
+}
+
+variable "access_key" {
+  description = "Access key for the S3 backend"
+  type        = string
+  sensitive   = true
+}
+
+variable "secret_key" {
+  description = "Secret key for the S3 backend"
+  type        = string
+  sensitive   = true
+}
