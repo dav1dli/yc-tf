@@ -40,8 +40,7 @@ jobs:
           cat env/dev/s3cfg.tmpl > ~/.s3cfg
           echo "access_key=$S3TF_ACCESS_KEY" >> ~/.s3cfg
           echo "secret_key=$S3TF_SECRET_KEY" >> ~/.s3cfg
-          cat ~/.s3cfg
-          s3cmd --help
+          s3cmd ls
       - name: 'Terraform Init'
         working-directory: terraform
         run: |
