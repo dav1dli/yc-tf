@@ -30,7 +30,7 @@ jobs:
         with:
           terraform_version: 1.8.4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Install s3cmd
@@ -53,18 +53,26 @@ jobs:
           s3cmd get s3://s3tfstate/infra.tfstate terraform.tfstate
       - name: 'Terraform Plan'
         working-directory: terraform
+        id: plan
         run: |
           terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
             -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
-            -var-file="../env/dev/env.tfvars" -out=infra.tfplan
-      - name: 'Dry Run Check'
-        if: env.DRY_RUN == 'true'
+            -var-file="../env/dev/env.tfvars" -out=infra.tfplan -input=false -detailed-exitcode
+        continue-on-error: true
+      - name: 'Check Plan Exit Code'
+        id: check_plan
         run: |
-          echo "Dry Run: Skipping deployment steps."
+          if [[ ${{ steps.plan.outcome }} == 'success' ]]; then
+            echo "apply_required=false" >> $GITHUB_ENV
+          elif [[ ${{ steps.plan.outcome }} == 'failure' ]]; then
+            exit 1
+          else
+            echo "apply_required=true" >> $GITHUB_ENV
+          fi
 
-      - name: 'Terraform Apply'
+      - name: Terraform Apply
         working-directory: terraform
-        if: env.DRY_RUN != 'true'
+        if: env.apply_required == 'true' && env.DRY_RUN == 'false'
         run: |
           set -xe
       #     terraform apply -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
