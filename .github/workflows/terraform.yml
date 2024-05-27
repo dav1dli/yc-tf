@@ -50,7 +50,7 @@ jobs:
         run: |
           if s3cmd ls s3://s3tfstate/infra.tfstate; then
             echo "Remote TF state exists. Downloading..."
-            s3cmd get s3://s3tfstate/bootstrap.tfstate terraform.tfstate
+            s3cmd get s3://s3tfstate/infra.tfstate terraform.tfstate
           else
             echo "Remote TF state does not exist."
           fi
@@ -62,16 +62,17 @@ jobs:
           # terraform plan -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
           #   -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
           #   -var-file="../env/dev/env.tfvars" -out=infra.tfplan
+
       - name: 'Dry Run Check'
         if: env.DRY_RUN == 'true'
         run: |
           echo "Dry Run: Skipping deployment steps."
 
-      # - name: 'Terraform Apply'
-      #   working-directory: terraform
-      #   if: env.DRY_RUN != 'true'
-      #   run: |
-      #     set -xe
+      - name: 'Terraform Apply'
+        working-directory: terraform
+        if: env.DRY_RUN != 'true'
+        run: |
+          set -xe
       #     terraform apply -var "yc_oauth_token=${{ env.YC_TOKEN }}" \
       #       -var "cloud_id=${{ env.CLOUD_ID }}" -var "folder_id=${{ env.FOLDER_ID }}" \
       #       -var-file="../env/dev/env.tfvars" -auto-approve
@@ -81,7 +82,7 @@ jobs:
         run: |
           if s3cmd ls terraform.tfstate; then
             echo "Local TF state exists. Uploading..."
-            s3cmd put terraform.tfstate s3://s3tfstate/bootstrap.tfstate
+            s3cmd put terraform.tfstate s3://s3tfstate/infra.tfstate
           else
             echo "Local TF state does not exist."
           fi
